@@ -10,9 +10,10 @@ import (
 )
 
 type Issue struct {
-	Title string `json:"title"`
-	Body  string `json:"body"`
-	URL   string `json:"html_url"`
+	Title     string   `json:"title"`
+	Body      string   `json:"body"`
+	URL       string   `json:"html_url"`
+	Assignees []string `json:"assignees"`
 }
 
 func fetchIssues(repo string) ([]Issue, error) {
@@ -49,7 +50,16 @@ func fetchIssues(repo string) ([]Issue, error) {
 	if err := json.Unmarshal(body, &issues); err != nil {
 		return nil, err
 	}
-	return issues, nil
+
+	// Filter issues to only include those without assignees
+	var filteredIssues []Issue
+	for _, issue := range issues {
+		if len(issue.Assignees) == 0 {
+			filteredIssues = append(filteredIssues, issue)
+		}
+	}
+
+	return filteredIssues, nil
 }
 
 func issuesHandler(w http.ResponseWriter, r *http.Request) {
